@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI, HTTPException, exceptions
 from tdk.tdk import tdk
 from wallpaper.wallpapers import get_wallpaper
