@@ -1,1 +1,1 @@
-ice: gunicorn --bind 0.0.0.0:$PORT main:app
+ice: uvicorn main:app --reload --port 8000

@@ -4,3 +4,4 @@ fastapi==0.78.0
 python-dotenv==0.20.0
 requests==2.27.1
 gunicorn
+uvicorn
