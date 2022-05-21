@@ -86,8 +86,3 @@ async def movie():
         return retu
     except Exception as e:
         return {"status_code": 404, "error": str(e)}
-
-
-@app.get("/favicon.ico")
-def favicon():
-    return HTTPException(status_code=404, detail="Not found")
