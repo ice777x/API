@@ -10,5 +10,5 @@ def get_yandex_photo(query: str) -> list:
     }
     r = requests.get(url, headers=headers)
     soup = BeautifulSoup(r.content, "html.parser")
-    resim_list = ["https:" + i["src"] for i in soup.select("img.serp-item__thumb")]
+    resim_list = ("https:" + i["src"] for i in soup.select("img.serp-item__thumb"))
     return resim_list

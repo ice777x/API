@@ -4,10 +4,9 @@ import json
 import aiohttp
 import asyncio
 
-dataDict: list = []
 
 
-def scrape_lyrics(response):
+def scrape_lyrics(response,data_dict):
     text_html = response.split("window.__PRELOADED_STATE__ = JSON.parse('")[1].split(
         "');"
     )[0]
@@ -20,11 +19,12 @@ def scrape_lyrics(response):
     data = json.loads(yeni)
     text = data["songPage"]["lyricsData"]["body"]["html"]
     lyrics_text = re.sub("<[^<]+?>", "", str(text))
-    return lyrics_text
+    data_dict["lyrics"] = lyrics_text
+    return data_dict
 
 
-def querySong(query: str):
-    global dataDict
+def query_song(query: str):
+    data_dict = []
     url = "https://genius.com/api/search/song?page=1&q=" + query
     r = requests.get(url)
     data: dict = r.json().get("response").get("sections")
@@ -38,7 +38,7 @@ def querySong(query: str):
         artist_name = artist["name"]
         artist_image = artist["image_url"]
         artist_url = artist["url"]
-        dataDict.append(
+        data_dict.append(
             {
                 "title": song,
                 "artist": artist,
@@ -51,7 +51,7 @@ def querySong(query: str):
                 },
             }
         )
-    return dataDict
+    return data_dict
 
 
 async def get_page(session, url):
@@ -59,20 +59,17 @@ async def get_page(session, url):
         return await response.text()
 
 
-async def print_page(session, url, i):
-    global dataDict
-    page = await get_page(session, url)
-    # dataDict[str(i + 1)] = _get_api(page)
-    dataDict[i]["lyrics"] = scrape_lyrics(page)
+async def print_page(session, data:dict):
+    page = await get_page(session, data["url"])
+    return scrape_lyrics(page,data)
 
 
 async def get_lyrics(query: str):
-    global dataDict
-    data2 = querySong(query)
+    data2 = query_song(query)
     async with aiohttp.ClientSession() as session:
         task = (
-            asyncio.ensure_future(print_page(session, v["url"], i))
+            asyncio.ensure_future(print_page(session, v))
             for i, v in enumerate(data2)
         )
         data = await asyncio.gather(*task)
-    return dataDict
+    return data
