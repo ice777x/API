@@ -48,7 +48,7 @@ async def print_response(session, url):
 
 async def get_tmdb_data():
     url_link = f"https://api.themoviedb.org/3/discover/movie?api_key={API_KEY}&sort_by=popularity.desc&include_adult=false&include_video=false&page="
-    urls = [url_link + str(i) for i in range(1, 20)]
+    urls = [url_link + str(i) for i in range(1, 10)]
     async with aiohttp.ClientSession() as session:
         task = [asyncio.ensure_future(print_response(session, url)) for url in urls]
         await asyncio.gather(*task)
