@@ -6,3 +6,4 @@ python-dotenv==0.20.0
 requests==2.27.1
 youtube_search_python==1.6.5
 yt_dlp==2022.4.8
+uvicorn
