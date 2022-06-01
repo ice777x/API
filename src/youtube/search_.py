@@ -8,7 +8,7 @@ async def search_youtube(query: str = None):
     if query == None:
         return data
     else:
-        v_search = VideosSearch(query)
+        v_search = VideosSearch(query, limit=7)
         v_result = await v_search.next()
         for i in v_result["result"]:
             type = i["type"]
