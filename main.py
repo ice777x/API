@@ -5,6 +5,7 @@ from src.yandexpic.yandex import get_yandex_photo
 from src.lyrics.glyrics import get_lyrics
 from src.translater.translator import Translator
 from src.movie.tmdb import get_tmdb_data
+from src.youtube.search_ import search_youtube
 from typing import Any
 from pydantic import BaseModel
 
@@ -16,20 +17,21 @@ class Translate(BaseModel):
 
 app = FastAPI()
 
-api_list = [
-    {"lyrics": "/lyrics/", "example": "/lyrics/?query=padişah"},
-    {
-        "translate": "/translate/",
+api_list = {
+    "lyrics": {"url": "/lyrics/", "example": "/lyrics/?query=padişah"},
+    "translate": {
+        "url": "/translate/",
         "example": [
             "/translate/?query=환영&src=ko&lang=tr",
             "/translate/?query=환영&lang=en",
         ],
     },
-    {"movie": "/movie/", "example": "/movie/"},
-    {"wallpaper": "/wallpaper/", "example": "/wallpaper/?query=spiderman"},
-    {"yandex": "/yandex/", "example": "/yandex/?query=galatasaray"},
-    {"tdk": "/tdk/", "example": ["/tdk/?query=merak", "/tdk/?oneri=merak"]},
-]
+    "movie": {"url": "/movie/", "example": "/movie/"},
+    "wallpaper": {"url": "/wallpaper/", "example": "/wallpaper/?query=spiderman"},
+    "yandex": {"url": "/yandex/", "example": "/yandex/?query=galatasaray"},
+    "tdk": {"url": "/tdk/", "example": ["/tdk/?query=merak", "/tdk/?oneri=merak"]},
+    "youtube": {"url": "/youtube/", "example": "/youtube/?query=machine%20learning"},
+}
 
 
 def convert_api_response(detail: str, status_code: int, response: Any) -> dict:
@@ -59,19 +61,34 @@ async def read_root():
 @app.get("/tdk/")
 async def read_item(query: str = None, oneri: str = None):
     if (oneri == None or oneri == "") and (query == None or query == ""):
-        return convert_api_response("Word not found", 404, api_list[5])
+        return convert_api_response("Word not found", 404, api_list["tdk"])
     elif oneri == None and query != None:
         return convert_api_response("Words found", 200, tdk(query))
     elif oneri != None and query == None:
         return convert_api_response("Words found", 200, benzer(oneri))
     else:
-        return convert_api_response("Parameters not found", 404, api_list[5])
+        return convert_api_response("Parameters not found", 404, api_list["tdk"])
+
+
+@app.get("/youtube/")
+async def youtube(query: str = None):
+    print(query)
+    if query == None or query == "":
+        return convert_api_response(
+            "Query parameter is invalid", 404, api_list["youtube"]
+        )
+    else:
+        return convert_api_response(
+            "Youtube Search List",
+            200,
+            await search_youtube(query),
+        )
 
 
 @app.get("/wallpaper/")
 def read_wallpaper(query: str = None):
     if query == None:
-        return convert_api_response("Query is required", 404, api_list[3])
+        return convert_api_response("Query is required", 404, api_list["wallpaper"])
     try:
         return convert_api_response("Get Wallpaper", 200, get_wallpaper(query))
     except Exception as e:
@@ -81,7 +98,7 @@ def read_wallpaper(query: str = None):
 @app.get("/yandex/")
 def read_yandexpic(query: str = None):
     if query == None:
-        return convert_api_response("Query is required", 404, api_list[4])
+        return convert_api_response("Query is required", 404, api_list["yandex"])
     try:
         return convert_api_response("Get Yandex Pictures", 200, get_yandex_photo(query))
     except Exception as e:
@@ -91,7 +108,7 @@ def read_yandexpic(query: str = None):
 @app.get("/lyrics/")
 async def read_lyrics(query: str = None):
     if query == None:
-        return {"status_code": 231, "error": api_list[0]}
+        return {"status_code": 231, "error": api_list["lyrics"]}
     try:
         return convert_api_response("Get Lyrics", 200, await get_lyrics(query))
     except Exception as e:
@@ -101,7 +118,7 @@ async def read_lyrics(query: str = None):
 @app.get("/translate/")
 def translate(query: str = None, src: str = "auto", lang: str = "tr"):
     if query == None:
-        return convert_api_response("Parameters not found", 404, api_list[1])
+        return convert_api_response("Parameters not found", 404, api_list["translate"])
     translator = Translator()
     result = translator.translate(
         text=query,
