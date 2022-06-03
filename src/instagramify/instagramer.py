@@ -58,6 +58,8 @@ class Instagramify:
             return None
 
     async def main(self):
+        if self.urls == None:
+            return self.urls
         async with aiohttp.ClientSession() as session:
             tasks = [
                 asyncio.ensure_future(self.print_response(session, url))
@@ -65,7 +67,10 @@ class Instagramify:
             ]
             return await asyncio.gather(*tasks)
 
-    async def instagramify(self):
+    async def instagramify(self) -> None | list:
         descriptions = self.profile_photos()
         result = await self.main()
-        return [i for i in zip(descriptions, result)]
+        if result != None:
+            return [i for i in zip(descriptions, result)]
+        else:
+            return None

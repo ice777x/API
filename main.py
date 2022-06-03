@@ -147,5 +147,7 @@ async def instagram(query: str = None):
             "Query parameter is invalid", 404, api_list["instagram"]
         )
     else:
-        result = await Instagramify(query).main()
+        result = await Instagramify(query).instagramify()
+        if result == None:
+            return convert_api_response("API doesn't work", 404, None)
         return convert_api_response("Instagramify", 200, result)
