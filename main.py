@@ -6,13 +6,8 @@ from src.lyrics.glyrics import get_lyrics
 from src.translater.translator import Translator
 from src.movie.tmdb import get_tmdb_data
 from src.youtube.search_ import search_youtube
+from src.instagramify.instagramer import Instagramify
 from typing import Any
-from pydantic import BaseModel
-
-
-class Translate(BaseModel):
-    text: str
-    lang: str
 
 
 app = FastAPI()
@@ -31,6 +26,7 @@ api_list = {
     "yandex": {"url": "/yandex/", "example": "/yandex/?query=galatasaray"},
     "tdk": {"url": "/tdk/", "example": ["/tdk/?query=merak", "/tdk/?oneri=merak"]},
     "youtube": {"url": "/youtube/", "example": "/youtube/?query=machine%20learning"},
+    "instagram": {"url": "/instagram/", "example": "/instagram/?query=therock"},
 }
 
 
@@ -142,3 +138,14 @@ async def movie():
         return requ
     except Exception as e:
         return {"status_code": 404, "error": str(e)}
+
+
+@app.get("/instagram/")
+async def instagram(query: str = None):
+    if query == None or query == "":
+        return convert_api_response(
+            "Query parameter is invalid", 404, api_list["instagram"]
+        )
+    else:
+        result = await Instagramify(query).main()
+        return convert_api_response("Instagramify", 200, result)
