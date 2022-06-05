@@ -31,7 +31,9 @@ class Instagramify:
             return "No profile found"
         a = soup.select("div.box-photo")
         self.urls = [i.select("a")[0].get("href") for i in a]
-        descriptions = [i.select("div.photo-description")[0].text for i in a]
+        descriptions = [
+            i.select("div.photo-description")[0].text.strip("\n ") for i in a
+        ]
         return descriptions
 
     async def get_page(self, session, url):

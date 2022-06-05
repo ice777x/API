@@ -7,6 +7,7 @@ from src.translater.translator import Translator
 from src.movie.tmdb import get_tmdb_data
 from src.youtube.search_ import search_youtube
 from src.instagramify.instagramer import Instagramify
+from src.discudemy.discudemy import DiscUdemy
 from typing import Any
 
 
@@ -27,6 +28,10 @@ api_list = {
     "tdk": {"url": "/tdk/", "example": ["/tdk/?query=merak", "/tdk/?oneri=merak"]},
     "youtube": {"url": "/youtube/", "example": "/youtube/?query=machine%20learning"},
     "instagram": {"url": "/instagram/", "example": "/instagram/?query=therock"},
+    "discudemy": {
+        "url": "/discudemy/",
+        "example": ["/discudemy/?query=javascript", "/discudemy/?query=python"],
+    },
 }
 
 
@@ -151,3 +156,14 @@ async def instagram(query: str = None):
         if result == None:
             return convert_api_response("API doesn't work", 404, None)
         return convert_api_response("Instagramify", 200, result)
+
+
+@app.get("/discudemy/")
+async def discudemy_(query: str = None):
+    disc = DiscUdemy(query)
+    response = await disc.get_discudemy()
+    if response == []:
+        disc = DiscUdemy(None)
+        response = await disc.category_list()
+        return convert_api_response("Category Not Found", 404, response)
+    return convert_api_response("DiscUdemy Free Coupon", 200, response)
