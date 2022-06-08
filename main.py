@@ -6,8 +6,9 @@ from src.lyrics.glyrics import get_lyrics
 from src.translater.translator import Translator
 from src.movie.tmdb import get_tmdb_data
 from src.youtube.search_ import search_youtube
-from src.instagramify.instagramer import Instagramify
 from src.discudemy.discudemy import DiscUdemy
+from src.books.books import Libgen
+from src.cryptocurrency.cryptocurrency import CoinGecko
 from typing import Any
 
 
@@ -22,20 +23,30 @@ api_list = {
             "/translate/?query=환영&lang=en",
         ],
     },
-    "movie": {"url": "/movie/", "example": "/movie/"},
+    "movie": {"url": "/movie/"},
     "wallpaper": {"url": "/wallpaper/", "example": "/wallpaper/?query=spiderman"},
     "yandex": {"url": "/yandex/", "example": "/yandex/?query=galatasaray"},
     "tdk": {"url": "/tdk/", "example": ["/tdk/?query=merak", "/tdk/?oneri=merak"]},
     "youtube": {"url": "/youtube/", "example": "/youtube/?query=machine%20learning"},
-    "instagram": {"url": "/instagram/", "example": "/instagram/?query=therock"},
     "discudemy": {
         "url": "/discudemy/",
         "example": ["/discudemy/?query=javascript", "/discudemy/?query=python"],
     },
+    "books": {"url": "/books/", "example": "/books/?query=javascript"},
+    "cryptocurrency": {
+        "url": "/cryptocurrency/",
+    },
 }
 
 
-def convert_api_response(detail: str, status_code: int, response: Any) -> dict:
+def convert_api_response(
+    detail: str = None,
+    status_code: int = 404,
+    response: Any = None,
+    error: bool = False,
+) -> dict:
+    if error:
+        return {"error": detail, "status_code": status_code}
     if response == None:
         return {
             "status_code": status_code,
@@ -145,19 +156,6 @@ async def movie():
         return {"status_code": 404, "error": str(e)}
 
 
-@app.get("/instagram/")
-async def instagram(query: str = None):
-    if query == None or query == "":
-        return convert_api_response(
-            "Query parameter is invalid", 404, api_list["instagram"]
-        )
-    else:
-        result = await Instagramify(query).instagramify()
-        if result == None:
-            return convert_api_response("API doesn't work", 404, None)
-        return convert_api_response("Instagramify", 200, result)
-
-
 @app.get("/discudemy/")
 async def discudemy_(query: str = None):
     disc = DiscUdemy(query)
@@ -167,3 +165,22 @@ async def discudemy_(query: str = None):
         response = await disc.category_list()
         return convert_api_response("Category Not Found", 404, response)
     return convert_api_response("DiscUdemy Free Coupon", 200, response)
+
+
+@app.get("/books/")
+async def book(query: str = None):
+    if not query:
+        return convert_api_response("Query is required", 404, api_list["books"])
+    books = Libgen(query)
+    response = await books.get_books()
+    return convert_api_response("Books", 200, response)
+
+
+@app.get("/cryptocurrency/")
+async def crypto_():
+    crypto = CoinGecko()
+    response = await crypto.parse()
+    try:
+        return convert_api_response("Crypto", 200, response)
+    except Exception as e:
+        return convert_api_response(str(e), 404, None, True)
