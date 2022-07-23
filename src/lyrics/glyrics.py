@@ -5,11 +5,8 @@ import aiohttp
 import asyncio
 
 
-
-def scrape_lyrics(response,data_dict):
-    text_html = response.split("window.__PRELOADED_STATE__ = JSON.parse('")[1].split(
-        "');"
-    )[0]
+def scrape_lyrics(response, data_dict):
+    text_html = response.split("window.__PRELOADED_STATE__ = JSON.parse('")[1].split("');")[0]
     yeni = (
         text_html.replace('\\"', '"')
         .replace("\\\\n", "\\n")
@@ -19,7 +16,7 @@ def scrape_lyrics(response,data_dict):
     data = json.loads(yeni)
     text = data["songPage"]["lyricsData"]["body"]["html"]
     lyrics_text = re.sub("<[^<]+?>", "", str(text))
-    data_dict["lyrics"] = lyrics_text
+    data_dict["lyrics"] = lyrics_text.strip("\n")
     return data_dict
 
 
@@ -59,17 +56,14 @@ async def get_page(session, url):
         return await response.text()
 
 
-async def print_page(session, data:dict):
+async def print_page(session, data: dict):
     page = await get_page(session, data["url"])
-    return scrape_lyrics(page,data)
+    return scrape_lyrics(page, data)
 
 
 async def get_lyrics(query: str):
     data2 = query_song(query)
     async with aiohttp.ClientSession() as session:
-        task = (
-            asyncio.ensure_future(print_page(session, v))
-            for i, v in enumerate(data2)
-        )
+        task = (asyncio.ensure_future(print_page(session, v)) for i, v in enumerate(data2))
         data = await asyncio.gather(*task)
     return data
